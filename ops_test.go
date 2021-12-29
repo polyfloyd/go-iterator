@@ -14,6 +14,29 @@ func TestMap(t *testing.T) {
 	}
 }
 
+func TestFilterMap(t *testing.T) {
+	iter := FromSlice([]int{1, 2, 3, 4})
+	iter = FilterMap(iter, func(i int) (int, bool) {
+		j := i * 2
+		return j, j < 5
+	})
+	result := ToSlice(iter)
+	if !reflect.DeepEqual(result, []int{2, 4}) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
+func TestFlatten(t *testing.T) {
+	iter0 := FromSlice([][]int{{0, 1, 2}, {10, 11, 12}})
+	iter1 := Flatten(iter0, func(ii []int) Iterator[int] {
+		return FromSlice(ii)
+	})
+	result := ToSlice(iter1)
+	if !reflect.DeepEqual(result, []int{0, 1, 2, 10, 11, 12}) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
 func TestFilter(t *testing.T) {
 	iter := FromSlice([]int{1, 2, 3, 4, 5, 6})
 	iter = Filter(iter, func(i int) bool { return i%2 == 0 })
@@ -24,6 +47,14 @@ func TestFilter(t *testing.T) {
 }
 
 // TestReduce is covered by other the other tests of the functions that use it.
+
+func TestCount(t *testing.T) {
+	iter := FromSlice([]int{0, 0, 0})
+	result := Count(iter)
+	if result != 3 {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
 
 func TestSum(t *testing.T) {
 	iter := FromSlice([]int{1, 2, 3})

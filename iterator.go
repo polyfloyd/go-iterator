@@ -29,6 +29,38 @@ func (emptyIterator[T]) Next() (T, bool) {
 	return zero, false
 }
 
+// Once returns an iterator that returns the specified item only once.
+func Once[T any](item T) Iterator[T] {
+	return &onceIterator[T]{item: &item}
+}
+
+type onceIterator[T any] struct{
+	item *T
+}
+
+func (iter *onceIterator[T]) Next() (T, bool) {
+	if iter.item != nil {
+		item := *iter.item
+		iter.item = nil
+		return item, true
+	}
+	var zero T
+	return zero, false
+}
+
+// Repeat returns an iterator that returns copies of the specified item indefinitely.
+func Repeat[T any](item T) Iterator[T] {
+	return &repeatIterator[T]{item: item}
+}
+
+type repeatIterator[T any] struct{
+	item T
+}
+
+func (iter *repeatIterator[T]) Next() (T, bool) {
+	return iter.item, true
+}
+
 // Range creates an iterator which returns the numeric range between start inclusive and end
 // exclusive by the step size.
 //

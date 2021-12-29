@@ -14,6 +14,23 @@ func TestEmpty(t *testing.T) {
 	}
 }
 
+func TestOnce(t *testing.T) {
+	iter := Once[int](1337)
+	result := ToSlice(iter)
+	if !reflect.DeepEqual(result, []int{1337}) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
+func TestRepeat(t *testing.T) {
+	iter := Repeat[int](1337)
+	iter = Take(iter, 4)
+	result := ToSlice(iter)
+	if !reflect.DeepEqual(result, []int{1337, 1337, 1337, 1337}) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
 func TestRange(t *testing.T) {
 	t.Run("count to 5", func(t *testing.T) {
 		iter := Range[int](0, 5, 1)
