@@ -1,6 +1,7 @@
 package iterator
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -68,3 +69,28 @@ func TestFromSlice(t *testing.T) {
 }
 
 // ToSlice is already quite well covered because it is used in other tests.
+
+func TestToChannel(t *testing.T) {
+	t.Run("cancel unconsumed", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		iter := FromSlice([]int{1, 2, 3, 4})
+		iter = FromChannel(ToChannel(ctx, iter, 0)) // Unbuffered, to avoid a race condition
+		iter.Next()
+		cancel()
+		val, ok := iter.Next()
+		if ok {
+			t.Fatalf("Unexpected: %v", val)
+		}
+	})
+}
+
+func TestGo(t *testing.T) {
+	t.Run("items", func(t *testing.T) {
+		iter := FromSlice([]int{1, 2, 3, 4})
+		iter = Go(context.Background(), iter)
+		result := ToSlice[int](iter)
+		if !reflect.DeepEqual(result, []int{1, 2, 3, 4}) {
+			t.Fatalf("Unexpected: %v", result)
+		}
+	})
+}

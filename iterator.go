@@ -86,3 +86,48 @@ func ToSlice[T any](from Iterator[T]) []T {
 	}
 	return slice
 }
+
+func FromChannel[T any](from <-chan T) Iterator[T] {
+	return &channelIterator[T]{from: from}
+}
+
+type channelIterator[T any] struct {
+	from <-chan T
+}
+
+func (iter *channelIterator[T]) Next() (T, bool) {
+	item, ok := <-iter.from
+	return item, ok
+}
+
+// ToChannel spawns a new goroutine that pulls from the specified iterator into the returned
+// channel. The channel may be buffered, which causes the preceding iterator chain to run in
+// parallel to the routine that consumes from the channel.
+//
+// A valid context should be passed that cancels when the iterator chain goes out of scope, this
+// prevents the goroutine from leaking if the channel is not fully consumed.
+func ToChannel[T any](ctx context.Context, from Iterator[T], buffer int) <-chan T {
+	out := make(chan T, buffer)
+	go func() {
+		defer close(out)
+		for item, ok := from.Next(); ok; item, ok = from.Next() {
+			select {
+			case out <- item:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	return out
+}
+
+// Go is a convenience function that calls ToChannel and then FromChannel with a buffer size of 1.
+//
+// The effect of this is that the iterator chain preceding this call runs in parallel to
+// subsequent chains.
+//
+// A valid context should be passed that cancels when the iterator chain goes out of scope, this
+// prevents the goroutine from leaking if the iterator chain is not fully consumed.
+func Go[T any](ctx context.Context, from Iterator[T]) Iterator[T] {
+	return FromChannel(ToChannel(ctx, from, 1))
+}
