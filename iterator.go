@@ -163,3 +163,38 @@ func ToChannel[T any](ctx context.Context, from Iterator[T], buffer int) <-chan 
 func Go[T any](ctx context.Context, from Iterator[T]) Iterator[T] {
 	return FromChannel(ToChannel(ctx, from, 1))
 }
+
+// FromMap creates a new iterator that traverses through all the entries of the map.
+//
+// The order in which entries are returned is non-deterministic, just like regular Go map iteration.
+func FromMap[K comparable, V any](from map[K]V) Iterator[MapEntry[K, V]] {
+	// Go map iteration offers no way to start somewhere, pause and continue at a later point, so
+	// making an iterator implementation that lazy loads without having a Goroutine is not possible.
+	//
+	// Using a Goroutine would require either a context to be passed, creating a leaky abstraction,
+	// or a requirement to always fully consume the iterator as to not leak the routine.
+	//
+	// Therefore, this implementation just converts the whole map into a slice and returns an
+	// iterator over that.
+	entries := []MapEntry[K, V]{}
+	for k, v := range from {
+		entries = append(entries, MapEntry[K, V]{Key: k, Val: v})
+	}
+	return FromSlice(entries)
+}
+
+// ToMap builds a map from an iterator over MapEntry items.
+//
+// Duplicate keys are silently overwritten, giving precedence to the last item from the iterator.
+func ToMap[K comparable, V any](from Iterator[MapEntry[K, V]]) map[K]V {
+	out := map[K]V{}
+	for item, ok := from.Next(); ok; item, ok = from.Next() {
+		out[item.Key] = item.Val
+	}
+	return out
+}
+
+type MapEntry[K comparable, V any] struct {
+	Key K
+	Val V
+}

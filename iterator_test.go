@@ -1,8 +1,10 @@
 package iterator
 
 import (
+	"constraints"
 	"context"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -111,3 +113,45 @@ func TestGo(t *testing.T) {
 		}
 	})
 }
+
+func TestFromMap(t *testing.T) {
+	m := map[string]int{
+		"x": 1,
+		"y": 2,
+		"z": 3,
+	}
+	iter := FromMap(m)
+	result := ToSlice(iter)
+	sort.Sort(byMapEntryKey[string, int](result)) // Map iteration is non-deterministic.
+	expect := []MapEntry[string, int]{
+		{Key: "x", Val: 1},
+		{Key: "y", Val: 2},
+		{Key: "z", Val: 3},
+	}
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
+func TestToMap(t *testing.T) {
+	iter := FromSlice([]MapEntry[string, int]{
+		{Key: "x", Val: 1},
+		{Key: "y", Val: 2},
+		{Key: "z", Val: 3},
+	})
+	result := ToMap(iter)
+	expect := map[string]int{
+		"x": 1,
+		"y": 2,
+		"z": 3,
+	}
+	if !reflect.DeepEqual(result, expect) {
+		t.Fatalf("Unexpected: %v", result)
+	}
+}
+
+type byMapEntryKey[K constraints.Ordered, V any] []MapEntry[K, V]
+
+func (s byMapEntryKey[K, V]) Len() int { return len(s) }
+func (s byMapEntryKey[K, V]) Less(i, j int) bool { return s[i].Key < s[j].Key }
+func (s byMapEntryKey[K, V]) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
