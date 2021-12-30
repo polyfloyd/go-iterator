@@ -33,5 +33,25 @@ func main() {
 }
 ```
 
-The syntax of chaining iterators is somewhat unwieldy because Go does not allow member functions of
-interfaces to introduce new type parameters.
+## Limitations
+
+### Chaining calls
+This is not possible to write:
+```go
+str := iterator.Range(0, 10, 1).
+	Filter(numbers, func(i int) bool {
+		return i%2 == 0
+	}).
+	Map(evenNumbers, func(i int) string {
+		return fmt.Sprint(i)
+	}).
+	Join(numberStrings, ", ")
+fmt.Println(str) // 0, 2, 4, 6, 8
+```
+Because that would require methods with generic types that are not tied to the Iterator interfaces
+itself to be present on the Iterator interface, which is not possible because templated interfaces
+are still dynamic types. It's like why you can not have a `dyn Hash` in Rust.
+
+Making this possible requires a change to the language to permit interfaces to have methods declared
+on them. Either by reusing the existing syntax for methods or by providing some kind of reverse
+Method Expression.
