@@ -14,6 +14,9 @@ func TestMap(t *testing.T) {
 	if !reflect.DeepEqual(result, []int{2, 4, 6}) {
 		t.Fatalf("Unexpected: %v", result)
 	}
+
+	countIter := Map(FromSlice([]int{1, 2, 3}), func(i int) int { return i * 2 })
+	testCounterImplementation(t, countIter, 3)
 }
 
 func TestFilterMap(t *testing.T) {
@@ -30,13 +33,18 @@ func TestFilterMap(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	iter0 := FromSlice([][]int{{0, 1, 2}, {10, 11, 12}})
-	iter1 := Flatten(iter0, func(ii []int) Iterator[int] {
-		return FromSlice(ii)
-	})
+	iter1 := Flatten(iter0, FromSlice[int])
 	result := ToSlice(iter1)
 	if !reflect.DeepEqual(result, []int{0, 1, 2, 10, 11, 12}) {
 		t.Fatalf("Unexpected: %v", result)
 	}
+
+	countIter0 := Flatten(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int])
+	testCounterImplementation(t, countIter0, 6)
+
+	countIter1 := Flatten(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int])
+	countIter1.Next() // Test whether the partially consumed iterator is included.
+	testCounterImplementation(t, countIter1, 5)
 }
 
 func TestFilter(t *testing.T) {
@@ -46,6 +54,11 @@ func TestFilter(t *testing.T) {
 	if !reflect.DeepEqual(result, []int{2, 4, 6}) {
 		t.Fatalf("Unexpected: %v", result)
 	}
+}
+
+func TestTake(t *testing.T) {
+	testCounterImplementation(t, Take(Repeat[int](1337), 10), 10)
+	testCounterImplementation(t, Take(Range[int](0, 20, 1), 10), 10)
 }
 
 // TestReduce is covered by other the other tests of the functions that use it.

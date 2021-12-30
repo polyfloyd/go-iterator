@@ -27,6 +27,10 @@ func (iter *mapIterator[T, O]) Next() (O, bool) {
 	return mapped, true
 }
 
+func (iter *mapIterator[T, O]) Count() int {
+	return Count(iter.from)
+}
+
 // FilterMap applies a function to all items from the specified iterator as Map does, but culls the
 // results which are accompanied by false.
 func FilterMap[T any, O any](from Iterator[T], mapFunc func(T) (O, bool)) Iterator[O] {
@@ -79,6 +83,17 @@ func (iter *flattenIterator[T, O]) Next() (O, bool) {
 	}
 }
 
+func (iter *flattenIterator[T, O]) Count() int {
+	fromCounts := Map(iter.from, func(item T) int {
+		return Count(iter.mapFunc(item))
+	})
+	count := Sum(fromCounts)
+	if iter.head != nil {
+		count += Count(iter.head)
+	}
+	return count
+}
+
 // Filter returns a new iterator that returns only the items that pass the test of the specified
 // filter function.
 //
@@ -122,6 +137,25 @@ func (iter *takeIterator[T]) Next() (T, bool) {
 		iter.num--
 	}
 	return item, ok
+}
+
+func (iter *takeIterator[T]) Count() int {
+	count := 0
+	if counter, ok := iter.from.(Counter[T]); ok {
+		count = counter.Count()
+	} else {
+		// If `Count(from)` is larger than num we are potentially doing more work than needed. So we
+		// have our own count loop with a limit on the loop condition that exits early.
+		for _, ok := iter.from.Next(); ok && count < iter.num; _, ok = iter.from.Next() {
+			count++
+		}
+	}
+
+	if iter.num < count {
+		count = iter.num
+	}
+	iter.num = 0
+	return count
 }
 
 func Reduce[T any, O any](from Iterator[T], reduceFunc func(O, T) O, initial O) O {
