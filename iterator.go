@@ -29,6 +29,10 @@ func (emptyIterator[T]) Next() (T, bool) {
 	return zero, false
 }
 
+func (emptyIterator[T]) Count() int {
+	return 0
+}
+
 // Once returns an iterator that returns the specified item only once.
 func Once[T any](item T) Iterator[T] {
 	return &onceIterator[T]{item: &item}
@@ -46,6 +50,14 @@ func (iter *onceIterator[T]) Next() (T, bool) {
 	}
 	var zero T
 	return zero, false
+}
+
+func (iter *onceIterator[T]) Count() int {
+	if iter.item != nil {
+		iter.item = nil
+		return 1
+	}
+	return 0
 }
 
 // Repeat returns an iterator that returns copies of the specified item indefinitely.
@@ -90,6 +102,12 @@ func (iter *rangeIterator[T]) Next() (T, bool) {
 	return num, true
 }
 
+func (iter *rangeIterator[T]) Count() int {
+	count := (iter.end - iter.start) / iter.step
+	iter.start = iter.end
+	return int(count)
+}
+
 // FromSlice creates a new iterator which returns all items from the slice starting at index 0 until
 // all items are consumed.
 func FromSlice[T any](slice []T) Iterator[T] {
@@ -108,6 +126,12 @@ func (iter *sliceIterator[T]) Next() (T, bool) {
 	item := iter.slice[0]
 	iter.slice = iter.slice[1:]
 	return item, true
+}
+
+func (iter *sliceIterator[T]) Count() int {
+	count := len(iter.slice)
+	iter.slice = []T{}
+	return count
 }
 
 // ToSlice collects the items from the specified iterator into a slice.

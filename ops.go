@@ -132,8 +132,20 @@ func Reduce[T any, O any](from Iterator[T], reduceFunc func(O, T) O, initial O) 
 	return accum
 }
 
-// Count consumes the entire iterator and returns the number of elements that were returned.
+// Counter can optionally be implemented by iterators to provide a specialized implementation of
+// Count. Implementations must ensure that after Count was called, Next will return no more items.
+type Counter[T any] interface {
+	Iterator[T]
+	Count() int
+}
+
+// Count consumes the entire iterator and returns the number of remaining elements that were
+// returned.
 func Count[T any](from Iterator[T]) int {
+	if counter, ok := from.(Counter[T]); ok {
+		return counter.Count()
+	}
+
 	count := 0
 	for _, ok := from.Next(); ok; _, ok = from.Next() {
 		count++

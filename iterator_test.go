@@ -9,19 +9,27 @@ import (
 )
 
 func TestEmpty(t *testing.T) {
-	iter := Empty[int]()
-	val, ok := iter.Next()
-	if ok {
-		t.Fatalf("Unexpected: %v", val)
-	}
+	t.Run("next", func(t *testing.T) {
+		iter := Empty[int]()
+		val, ok := iter.Next()
+		if ok {
+			t.Fatalf("Unexpected: %v", val)
+		}
+	})
+
+	testCounterImplementation(t, Empty[int](), 0)
 }
 
 func TestOnce(t *testing.T) {
-	iter := Once[int](1337)
-	result := ToSlice(iter)
-	if !reflect.DeepEqual(result, []int{1337}) {
-		t.Fatalf("Unexpected: %v", result)
-	}
+	t.Run("next", func(t *testing.T) {
+		iter := Once[int](1337)
+		result := ToSlice(iter)
+		if !reflect.DeepEqual(result, []int{1337}) {
+			t.Fatalf("Unexpected: %v", result)
+		}
+	})
+
+	testCounterImplementation(t, Once[int](1337), 1)
 }
 
 func TestRepeat(t *testing.T) {
@@ -68,6 +76,11 @@ func TestRange(t *testing.T) {
 			t.Fatalf("Expected panic")
 		}
 	})
+
+	testCounterImplementation(t, Range[int](0, 10, 1), 10)
+	testCounterImplementation(t, Range[int](0, 10, 2), 5)
+	testCounterImplementation(t, Range[int](0, 10, 5), 2)
+	testCounterImplementation(t, Range[int](0, 0, 1), 0)
 }
 
 func TestFromSlice(t *testing.T) {
@@ -85,6 +98,9 @@ func TestFromSlice(t *testing.T) {
 			t.Fatalf("Unexpected: %v", result)
 		}
 	})
+
+	testCounterImplementation(t, FromSlice[int]([]int{}), 0)
+	testCounterImplementation(t, FromSlice[int]([]int{1, 2, 3, 4}), 4)
 }
 
 // ToSlice is already quite well covered because it is used in other tests.

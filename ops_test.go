@@ -1,6 +1,8 @@
 package iterator
 
 import (
+	"context"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -50,10 +52,29 @@ func TestFilter(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	iter := FromSlice([]int{0, 0, 0})
+	iter = Go(context.Background(), iter) // Ensure Counter is not implemented.
 	result := Count(iter)
 	if result != 3 {
 		t.Fatalf("Unexpected: %v", result)
 	}
+}
+
+func testCounterImplementation[T any](t *testing.T, iter Iterator[T], expectedCount int) {
+	t.Run(fmt.Sprintf("count %d", expectedCount), func(t *testing.T) {
+		counter, ok := iter.(Counter[T])
+		if !ok {
+			t.Fatalf("%T does not implement Counter", iter)
+		}
+		if count := Count(iter); count != expectedCount {
+			t.Fatalf("Unexpected count: %v", count)
+		}
+		if _, ok := counter.Next(); ok {
+			t.Fatalf("Unexpected item after calling Count")
+		}
+		if count := counter.Count(); count != 0 {
+			t.Fatalf("Unexpected second count: %v", count)
+		}
+	})
 }
 
 func TestSum(t *testing.T) {
