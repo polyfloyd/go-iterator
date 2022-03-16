@@ -168,6 +168,6 @@ func TestToMap(t *testing.T) {
 
 type byMapEntryKey[K constraints.Ordered, V any] []MapEntry[K, V]
 
-func (s byMapEntryKey[K, V]) Len() int { return len(s) }
+func (s byMapEntryKey[K, V]) Len() int           { return len(s) }
 func (s byMapEntryKey[K, V]) Less(i, j int) bool { return s[i].Key < s[j].Key }
-func (s byMapEntryKey[K, V]) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s byMapEntryKey[K, V]) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }

@@ -38,7 +38,7 @@ func Once[T any](item T) Iterator[T] {
 	return &onceIterator[T]{item: &item}
 }
 
-type onceIterator[T any] struct{
+type onceIterator[T any] struct {
 	item *T
 }
 
@@ -65,7 +65,7 @@ func Repeat[T any](item T) Iterator[T] {
 	return &repeatIterator[T]{item: item}
 }
 
-type repeatIterator[T any] struct{
+type repeatIterator[T any] struct {
 	item T
 }
 

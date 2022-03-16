@@ -13,7 +13,7 @@ func Map[T any, O any](from Iterator[T], mapFunc func(T) O) Iterator[O] {
 }
 
 type mapIterator[T any, O any] struct {
-	from Iterator[T]
+	from    Iterator[T]
 	mapFunc func(T) O
 }
 
@@ -38,7 +38,7 @@ func FilterMap[T any, O any](from Iterator[T], mapFunc func(T) (O, bool)) Iterat
 }
 
 type filterMapIterator[T any, O any] struct {
-	from Iterator[T]
+	from    Iterator[T]
 	mapFunc func(T) (O, bool)
 }
 
@@ -60,8 +60,8 @@ func Flatten[T any, O any](from Iterator[T], mapFunc func(T) Iterator[O]) Iterat
 }
 
 type flattenIterator[T any, O any] struct {
-	from Iterator[T]
-	head Iterator[O]
+	from    Iterator[T]
+	head    Iterator[O]
 	mapFunc func(T) Iterator[O]
 }
 
@@ -103,7 +103,7 @@ func Filter[T any](from Iterator[T], filterFunc func(T) bool) Iterator[T] {
 }
 
 type filterIterator[T any] struct {
-	from Iterator[T]
+	from       Iterator[T]
 	filterFunc func(T) bool
 }
 
@@ -124,7 +124,7 @@ func Take[T any](from Iterator[T], num int) Iterator[T] {
 
 type takeIterator[T any] struct {
 	from Iterator[T]
-	num int
+	num  int
 }
 
 func (iter *takeIterator[T]) Next() (T, bool) {
