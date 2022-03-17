@@ -1,7 +1,7 @@
 package iterator
 
 import (
-	"constraints"
+	"golang.org/x/exp/constraints"
 )
 
 // Map returns a new iterator which applies a function to all items from the input iterator which

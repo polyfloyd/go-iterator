@@ -1,11 +1,12 @@
 package iterator
 
 import (
-	"constraints"
 	"context"
 	"reflect"
 	"sort"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 func TestEmpty(t *testing.T) {

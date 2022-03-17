@@ -1,7 +1,7 @@
 package iterator
 
 import (
-	"constraints"
+	"golang.org/x/exp/constraints"
 )
 
 type Number interface {
