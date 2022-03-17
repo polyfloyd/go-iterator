@@ -33,16 +33,17 @@ func TestFilterMap(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	iter0 := FromSlice([][]int{{0, 1, 2}, {10, 11, 12}})
-	iter1 := Flatten(iter0, FromSlice[int])
-	result := ToSlice(iter1)
+	iter1 := Map(iter0, FromSlice[int])
+	iter2 := Flatten(iter1)
+	result := ToSlice(iter2)
 	if !reflect.DeepEqual(result, []int{0, 1, 2, 10, 11, 12}) {
 		t.Fatalf("Unexpected: %v", result)
 	}
 
-	countIter0 := Flatten(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int])
+	countIter0 := Flatten(Map(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int]))
 	testCounterImplementation(t, countIter0, 6)
 
-	countIter1 := Flatten(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int])
+	countIter1 := Flatten(Map(FromSlice([][]int{{0, 1, 2}, {100}, {10, 11}}), FromSlice[int]))
 	countIter1.Next() // Test whether the partially consumed iterator is included.
 	testCounterImplementation(t, countIter1, 5)
 }

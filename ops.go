@@ -55,25 +55,24 @@ func (iter *filterMapIterator[T, O]) Next() (O, bool) {
 
 // Flatten applies a function to all items of the specified iterator, returning an iterator for each
 // item. The resulting iterators are then concatenated into a single iterator.
-func Flatten[T any, O any](from Iterator[T], mapFunc func(T) Iterator[O]) Iterator[O] {
-	return &flattenIterator[T, O]{from: from, mapFunc: mapFunc}
+func Flatten[T any](from Iterator[Iterator[T]]) Iterator[T] {
+	return &flattenIterator[T]{from: from}
 }
 
-type flattenIterator[T any, O any] struct {
-	from    Iterator[T]
-	head    Iterator[O]
-	mapFunc func(T) Iterator[O]
+type flattenIterator[T any] struct {
+	from Iterator[Iterator[T]]
+	head Iterator[T]
 }
 
-func (iter *flattenIterator[T, O]) Next() (O, bool) {
+func (iter *flattenIterator[T]) Next() (T, bool) {
 	for {
 		if iter.head == nil {
 			item, ok := iter.from.Next()
 			if !ok {
-				var zero O
+				var zero T
 				return zero, false
 			}
-			iter.head = iter.mapFunc(item)
+			iter.head = item
 		}
 		item, ok := iter.head.Next()
 		if ok {
@@ -83,9 +82,9 @@ func (iter *flattenIterator[T, O]) Next() (O, bool) {
 	}
 }
 
-func (iter *flattenIterator[T, O]) Count() int {
-	fromCounts := Map(iter.from, func(item T) int {
-		return Count(iter.mapFunc(item))
+func (iter *flattenIterator[T]) Count() int {
+	fromCounts := Map(iter.from, func(item Iterator[T]) int {
+		return Count(item)
 	})
 	count := Sum(fromCounts)
 	if iter.head != nil {
