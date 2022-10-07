@@ -39,13 +39,13 @@ func main() {
 This is not possible to write:
 ```go
 str := iterator.Range(0, 10, 1).
-	Filter(numbers, func(i int) bool {
+	Filter(func(i int) bool {
 		return i%2 == 0
 	}).
-	Map(evenNumbers, func(i int) string {
+	Map(func(i int) string {
 		return fmt.Sprint(i)
 	}).
-	Join(numberStrings, ", ")
+	Join(", ")
 fmt.Println(str) // 0, 2, 4, 6, 8
 ```
 Because that would require methods with generic types that are not tied to the Iterator interfaces
